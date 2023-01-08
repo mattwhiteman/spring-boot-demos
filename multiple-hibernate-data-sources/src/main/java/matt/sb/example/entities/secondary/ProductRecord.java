@@ -2,6 +2,7 @@ package matt.sb.example.entities.secondary;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name="products")
+@EqualsAndHashCode
 public class ProductRecord implements Serializable {
     private static final long serialVersionUID = 5937620045212743932L;
     @Id
