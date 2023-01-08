@@ -22,24 +22,34 @@ import java.util.Map;
 import java.util.Properties;
 
 @Configuration
+/**
+ * Scan for any JPA repository classes in the specified package so that they are
+ * associated with the second (H2) db instance. Point these JPA repositories
+ * at the hibernate beans being created in this configuration
+ */
 @EnableJpaRepositories(
         basePackages = "matt.sb.example.repositories.secondary",
         entityManagerFactoryRef = "secondaryEntityManagerFactory",
         transactionManagerRef = "secondaryTransactionManager")
 public class SecondaryDataSourceConfig {
     @Bean
+    // Read the hibernate configuration variables associated with the second (H2) db into a properties object
     @ConfigurationProperties("app.hibernateconfig.secondary")
     public Properties secondaryHibernateConfig() {
         return new Properties();
     }
 
     @Bean
+    // Read the JPA configuration variables associated with the second (H2) db into a properties object. This bean
+    // is normally automatically created by spring, but must be manually setup in the case of multiple data sources.
     @ConfigurationProperties("app.datasource.secondary")
     public DataSourceProperties secondaryDataSourceProperties() {
         return new DataSourceProperties();
     }
 
     @Bean
+    // Create a data source bean using the second (H2) JPA config properties. This bean is normally
+    // automatically created by spring, but must be manually setup in the case of multiple data sources.
     @ConfigurationProperties("app.datasource.secondary.configuration")
     public DataSource secondaryDataSource(@Qualifier("secondaryDataSourceProperties")DataSourceProperties secondaryDataSourceProperties) {
         return secondaryDataSourceProperties.initializeDataSourceBuilder()
@@ -47,6 +57,8 @@ public class SecondaryDataSourceConfig {
     }
 
     @Bean(name = "secondaryEntityManagerFactory")
+    // Create an entity manager using the second data source and hibernate configuration. This bean is normally
+    // automatically created by spring, but must be manually setup in the case of multiple data sources.
     public LocalContainerEntityManagerFactoryBean secondaryEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
             ConfigurableListableBeanFactory beanFactory,
@@ -72,6 +84,8 @@ public class SecondaryDataSourceConfig {
     }
 
     @Bean
+    // Create a transaction manager for the JPA repositories associated with the second (H2) db instance. This bean
+    // is normally automatically created by spring, but must be manually setup in the case of multiple data sources.
     public PlatformTransactionManager secondaryTransactionManager(
             final @Qualifier("secondaryEntityManagerFactory") LocalContainerEntityManagerFactoryBean secondaryEntityManagerFactory) {
         return new JpaTransactionManager(secondaryEntityManagerFactory.getObject());
