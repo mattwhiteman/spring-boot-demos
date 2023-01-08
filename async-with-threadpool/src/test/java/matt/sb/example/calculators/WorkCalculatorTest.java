@@ -7,6 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class WorkCalculatorTest {
@@ -15,10 +16,12 @@ public class WorkCalculatorTest {
     public void testCalculateNullInput() {
         WorkCalculator underTest = new WorkCalculator();
 
-        WorkResult result = underTest.runCalculation(null).join();
-
-        assertEquals(0, result.getWorkResult());
-        assertNotNull(result.getExecutionThreadName());
+        // Test is for the underlying RuntimeException instead of the CompletedException.
+        // This is because the async execution and exception wrapping is all done by
+        // an interceptor added at bean creation time by spring. Since the object is
+        // being created manually, no such interceptor is in place, so this method call
+        // runs synchronously and does not wrap uncaught exceptions.
+        assertThrows(RuntimeException.class, () -> underTest.runCalculation(null));
     }
 
     @Test

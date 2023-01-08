@@ -23,12 +23,20 @@ import java.util.Map;
 import java.util.Properties;
 
 @Configuration
+/**
+ * Scan for any JPA repository classes in the specified package so that they are
+ * associated with the primary (MySQL) db instance. Point these JPA repositories
+ * at the hibernate beans being created in this configuration. Some of these beans
+ * must be annotated with Primary since Spring normally only expects one of them to
+ * be present.
+ */
 @EnableJpaRepositories(
         basePackages = "matt.sb.example.repositories.primary",
         entityManagerFactoryRef = "primaryEntityManagerFactory",
         transactionManagerRef = "primaryTransactionManager")
 public class PrimaryDataSourceConfig {
     @Bean
+    // Read the hibernate configuration variables associated with the primary (MySQL) db into a properties object
     @ConfigurationProperties("app.hibernateconfig.primary")
     public Properties primaryHibernateConfig() {
         return new Properties();
@@ -36,6 +44,8 @@ public class PrimaryDataSourceConfig {
 
     @Bean
     @Primary
+    // Read the JPA configuration variables associated with the primary (MySQL) db into a properties object. This bean
+    // is normally automatically created by spring, but must be manually setup in the case of multiple data sources.
     @ConfigurationProperties("app.datasource.primary")
     public DataSourceProperties primaryDataSourceProperties() {
         return new DataSourceProperties();
@@ -44,6 +54,8 @@ public class PrimaryDataSourceConfig {
     @Bean
     @Primary
     @ConfigurationProperties("app.datasource.primary.configuration")
+    // Create a data source bean using the primary (MySQL) JPA config properties. This bean is normally
+    // automatically created by spring, but must be manually setup in the case of multiple data sources.
     public DataSource primaryDataSource(@Qualifier("primaryDataSourceProperties")DataSourceProperties primaryDataSourceProperties) {
         return primaryDataSourceProperties.initializeDataSourceBuilder()
                 .type(HikariDataSource.class).build();
@@ -51,6 +63,8 @@ public class PrimaryDataSourceConfig {
 
     @Bean(name = "primaryEntityManagerFactory")
     @Primary
+    // Create an entity manager using the primary data source and hibernate configuration. This bean is normally
+    // automatically created by spring, but must be manually setup in the case of multiple data sources.
     public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
             ConfigurableListableBeanFactory beanFactory,
@@ -58,6 +72,7 @@ public class PrimaryDataSourceConfig {
             @Qualifier("primaryHibernateConfig")Properties primaryHibernateConfig,
             @Value("${app.datasource.primary.scanpackages}")String scanPackages) {
 
+        // Convert the properties object into a string-string hashmap
         Map<String, String> propertiesAsMap = new HashMap<>();
         primaryHibernateConfig.stringPropertyNames().forEach(propertyName -> {
             propertiesAsMap.put(propertyName, primaryHibernateConfig.getProperty(propertyName));
@@ -77,6 +92,8 @@ public class PrimaryDataSourceConfig {
 
     @Bean
     @Primary
+    // Create a transaction manager for the JPA repositories associated with the primary (MySQL) db instance. This bean
+    // is normally automatically created by spring, but must be manually setup in the case of multiple data sources.
     public PlatformTransactionManager primaryTransactionManager(
             final @Qualifier("primaryEntityManagerFactory") LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory) {
         return new JpaTransactionManager(primaryEntityManagerFactory.getObject());

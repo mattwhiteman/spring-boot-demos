@@ -34,6 +34,10 @@ public class WorkService {
             try {
                 retVal.addWorkResult(workFuture.join());
             } catch (CompletionException | CancellationException e) {
+                // Any uncaught exceptions will be wrapped in a CompletionException by the async
+                // code that spring dynamically adds. If the task is interrupted, it would be
+                // wrapped in a CancellationException.
+                log.error("Error while executing async code: {}", e.getCause().getMessage());
                 // In a real REST application, the http status should be changed to indicate
                 // a partial response. This would be a design decision specific to the application
                 retVal.setCompletedWithErrors(true);

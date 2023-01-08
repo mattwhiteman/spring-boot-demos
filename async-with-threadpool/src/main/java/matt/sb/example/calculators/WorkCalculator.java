@@ -19,7 +19,9 @@ public class WorkCalculator {
         retVal.setExecutionThreadName(Thread.currentThread().getName());
 
         if (value == null) {
-            retVal.setWorkResult(0);
+            // When an uncaught exception happens in an async method, it will cause it to bubble
+            // up wrapped in a CompletionException to whoever calls join/get on the CompletedFuture object
+            throw new RuntimeException("Computation value cannot be null");
         }
         else {
             retVal.setWorkResult(value*value);
@@ -27,7 +29,7 @@ public class WorkCalculator {
 
         try {
             // Sleep to mimic complex work and cause other threads to run simultaneously
-            Thread.sleep(( (value == null ? 0 : value) % 3) * 200);
+            Thread.sleep(( value % 3) * 200);
         } catch (InterruptedException ignored) {
         }
 
