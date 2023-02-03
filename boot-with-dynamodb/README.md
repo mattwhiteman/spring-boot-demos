@@ -45,4 +45,10 @@ a search using a field that is not a key or part of an index. Queries and scans 
 filters, and options and are too numerous to list here.  The AWS documentation and SDK javadocs should be consulted 
 for more information.
 
+### Important:
+Standard Hibernate ORM libraries are intentionally not used here. There is currently no good and maintained solution that
+provides the necessary driver implementation to allow standard hibernate classes and annotations to work with dynamo. Some older
+libraries can be found in maven central, but they are not maintained and do not have the full functionality of the SDK
+provided by Amazon.
+
 To build this project and run the unit/integration tests, use `mvn clean package`.
