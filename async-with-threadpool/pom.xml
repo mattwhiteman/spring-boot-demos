@@ -18,6 +18,8 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skip.integration.tests>true</skip.integration.tests>
+        <skip.unit.tests>false</skip.unit.tests>
     </properties>
 
     <dependencies>
@@ -28,7 +30,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
+            <version>1.18.26</version>
         </dependency>
 
         <dependency>
@@ -37,6 +39,52 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <!-- The Configuration of the development profile -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <skip.integration.tests>true</skip.integration.tests>
+                <skip.unit.tests>false</skip.unit.tests>
+            </properties>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-report-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+        <!-- The Configuration of the integration-test profile -->
+        <profile>
+            <id>int-test</id>
+            <properties>
+                <skip.integration.tests>false</skip.integration.tests>
+                <skip.unit.tests>true</skip.unit.tests>
+            </properties>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-report-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <id>integration-tests</id>
+                                <reports>
+                                    <report>failsafe-report-only</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -50,7 +98,38 @@
                     <release>11</release>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skip.unit.tests}</skipTests>
+                    <excludes>
+                        <exclude>**/IT*.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*IT</include>
+                    </includes>
+                    <skipTests>${skip.integration.tests}</skipTests>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
 </project>
