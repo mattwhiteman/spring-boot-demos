@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes= Application.class)
 @AutoConfigureMockMvc
-public class WorkCalculatorIntegrationTest {
+public class WorkCalculatorIT {
 
     @Autowired
     private MockMvc mockMvc;
